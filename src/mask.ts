@@ -172,30 +172,7 @@ export class Mask {
     return res;
   }
 
-  _maskKeyHandler(e: KeyboardEvent) {
-    if (this._movementKeyCodes.indexOf(e.keyCode) !== -1) {
-      return;
-    }
-
-    debugger;
-    e.preventDefault();
-
-    if (e.keyCode === BACKSPACE_KEY_CODE) {
-      const { start, end } = this._caret();
-      this._caret({ start: start - 1, end: end - 1 });
-      if (this._caret().start < start) {
-        this._handleKeyChain(this._getEmptySequence(end - start + 1));
-        this._displayMaskedValue({ start: start - 1, end: start - 1 });
-      }
-      return;
-    }
-    if (e.keyCode === DEL_KEY_CODE) {
-      const { start, end } = this._caret();
-      this._handleKeyChain(this._getEmptySequence(end - start + 1));
-      this._displayMaskedValue();
-      return;
-    }
-
+  _handleInput(e: KeyboardEvent) {
     const previousText = this.value;
     const raiseInputEvent = () => {
       if (previousText !== this.value) {
@@ -218,5 +195,44 @@ export class Mask {
     } else {
       raiseInputEvent();
     }
+  }
+
+  _handleDel(e: KeyboardEvent) {
+    const { start, end } = this._caret();
+    this._handleKeyChain(this._getEmptySequence(end - start + 1));
+    this._displayMaskedValue();
+  }
+
+  _handleBackspace(e: KeyboardEvent) {
+    const { start, end } = this._caret();
+    if (start < end) {
+      this._handleDel(e);
+    } else {
+      this._caret({ start: start - 1, end: end - 1 });
+      if (this._caret().start < start) {
+        this._handleKeyChain(this._getEmptySequence(end - start + 1));
+        this._displayMaskedValue({ start: start - 1, end: start - 1 });
+      }
+    }
+  }
+
+  _maskKeyHandler(e: KeyboardEvent) {
+    if (this._movementKeyCodes.indexOf(e.keyCode) !== -1) {
+      return;
+    }
+
+    debugger;
+    e.preventDefault();
+
+    if (e.keyCode === BACKSPACE_KEY_CODE) {
+      this._handleBackspace(e);
+      return;
+    }
+    if (e.keyCode === DEL_KEY_CODE) {
+      this._handleDel(e);
+      return;
+    }
+
+    this._handleInput(e);
   }
 }
